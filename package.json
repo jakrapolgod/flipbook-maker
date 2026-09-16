@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "description": "สร้าง ebook แบบพลิกหน้าจากรูปภาพหรือ PDF",
   "author": "Jakrapol",
+  "license": "MIT",
   "private": true,
   "main": "electron/main.js",
   "scripts": {
