@@ -1,0 +1,47 @@
+{
+  "name": "flipbook-maker",
+  "productName": "Flipbook Maker",
+  "version": "1.0.0",
+  "description": "สร้าง ebook แบบพลิกหน้าจากรูปภาพหรือ PDF",
+  "author": "Jakrapol",
+  "private": true,
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "node server.js",
+    "app": "electron .",
+    "dist": "electron-builder --win nsis"
+  },
+  "devDependencies": {
+    "electron": "^44.4.1",
+    "electron-builder": "^26.15.3"
+  },
+  "build": {
+    "appId": "com.jakrapol.flipbookmaker",
+    "productName": "Flipbook Maker",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "electron/**",
+      "css/**",
+      "js/**",
+      "vendor/**",
+      "index.html",
+      "server.js"
+    ],
+    "win": {
+      "target": [{ "target": "nsis", "arch": ["x64"] }],
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Flipbook Maker",
+      "artifactName": "FlipbookMaker-Setup-${version}.${ext}"
+    }
+  }
+}

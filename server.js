@@ -48,19 +48,45 @@ const server = http.createServer((req, res) => {
   });
 });
 
-function listen(port, attemptsLeft) {
-  server.once('error', (err) => {
-    if (err.code === 'EADDRINUSE' && attemptsLeft > 0) return listen(port + 1, attemptsLeft - 1);
-    console.error(err.message);
-    process.exit(1);
+/* Resolves once the server is listening. Port 0 asks the OS for a free one,
+   which is what the desktop build uses so two copies never collide. */
+function start(port, attemptsLeft) {
+  if (port === undefined) port = START_PORT;
+  if (attemptsLeft === undefined) attemptsLeft = 20;
+
+  return new Promise((resolve, reject) => {
+    function onError(err) {
+      if (err.code === 'EADDRINUSE' && attemptsLeft > 0) {
+        server.removeListener('error', onError);
+        return resolve(start(port + 1, attemptsLeft - 1));
+      }
+      reject(err);
+    }
+    server.once('error', onError);
+    server.listen(port, '127.0.0.1', () => {
+      server.removeListener('error', onError);
+      const actual = server.address().port;
+      resolve({
+        port: actual,
+        url: `http://localhost:${actual}/`,
+        close: () => new Promise((r) => server.close(r))
+      });
+    });
   });
-  server.listen(port, '127.0.0.1', () => {
-    const url = `http://localhost:${port}/`;
+}
+
+module.exports = { start };
+
+/* Started straight from a console (start.cmd), not required by Electron. */
+if (require.main === module) {
+  start().then(({ url }) => {
     console.log('\n  Flipbook Maker พร้อมใช้งานที่  ' + url + '\n  กด Ctrl+C เพื่อปิด\n');
     // Only pop a browser open when a human started us from a console.
     if (!process.stdout.isTTY || process.env.FB_NO_OPEN) return;
     if (process.platform === 'win32') execFile('cmd', ['/c', 'start', '', url]);
     else execFile(process.platform === 'darwin' ? 'open' : 'xdg-open', [url]);
+  }).catch((err) => {
+    console.error(err.message);
+    process.exit(1);
   });
 }
-listen(START_PORT, 20);
