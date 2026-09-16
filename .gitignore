@@ -1,0 +1,13 @@
+# ผลลัพธ์ที่ build ได้ใหม่เสมอ และอาจมีเนื้อหาหนังสือจริงอยู่ข้างใน
+dist/
+
+# แคชของ Cloudflare CLI (มี account id อยู่ข้างใน)
+.wrangler/
+
+node_modules/
+*.log
+
+# Windows / editor junk
+Thumbs.db
+desktop.ini
+.DS_Store

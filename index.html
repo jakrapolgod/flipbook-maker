@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flipbook Maker — สร้าง ebook พลิกหน้าจากรูปภาพหรือ PDF</title>
+<link rel="stylesheet" href="css/app.css">
+<link rel="stylesheet" href="css/flipbook.css">
+</head>
+<body>
+
+<div class="app">
+  <header class="top">
+    <div class="brand">Flipbook Maker<small>สร้าง ebook พลิกหน้าจากรูปภาพหรือ PDF</small></div>
+    <div class="spacer"></div>
+    <button class="btn" id="btnAddImages">+ เพิ่มรูปภาพ</button>
+    <button class="btn" id="btnAddPdf">+ นำเข้า PDF</button>
+    <button class="btn primary" id="btnPreview" disabled>พรีวิว</button>
+    <button class="btn primary" id="btnExport" disabled>Export เป็นไฟล์</button>
+  </header>
+
+  <div class="body">
+    <aside>
+      <section>
+        <h2>ข้อมูลหนังสือ</h2>
+        <div class="field">
+          <label for="fTitle">ชื่อเรื่อง</label>
+          <input type="text" id="fTitle" placeholder="ชื่อ ebook ของคุณ">
+        </div>
+        <div class="field">
+          <label for="fAuthor">ผู้จัดทำ (แสดงในแท็บและ metadata)</label>
+          <input type="text" id="fAuthor" placeholder="ชื่อผู้จัดทำ / หน่วยงาน">
+        </div>
+      </section>
+
+      <section>
+        <h2>รูปแบบการแสดงผล</h2>
+        <div class="field">
+          <label for="fMode">การจัดหน้า</label>
+          <select id="fMode">
+            <option value="auto">อัตโนมัติ (จอกว้าง = 2 หน้า, มือถือ = 1 หน้า)</option>
+            <option value="double">สองหน้าคู่เสมอ</option>
+            <option value="single">หน้าเดียวเสมอ</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="fBg">สีพื้นหลัง</label>
+          <input type="color" id="fBg" value="#2a2b31">
+        </div>
+        <div class="field">
+          <label for="fSpeed">ความเร็วพลิกหน้า</label>
+          <div class="row">
+            <input type="range" id="fSpeed" min="300" max="1400" step="50" value="700">
+            <span class="val" id="fSpeedVal">700 ms</span>
+          </div>
+        </div>
+        <label class="check"><input type="checkbox" id="fSound" checked> เปิดเสียงพลิกหน้า</label>
+      </section>
+
+      <section>
+        <h2>การป้องกันเล่มนี้</h2>
+        <div class="field">
+          <label for="fProtect">โหมด</label>
+          <select id="fProtect">
+            <option value="none">ไม่เข้ารหัส — ใครมีลิงก์ก็เปิดอ่านได้</option>
+            <option value="password">เข้ารหัส — ต้องกรอกรหัสผ่านก่อนอ่าน</option>
+          </select>
+        </div>
+        <div id="pwFields" hidden>
+          <div class="field">
+            <label for="fPassword">รหัสผ่านของเล่มนี้</label>
+            <input type="password" id="fPassword" autocomplete="new-password" placeholder="อย่างน้อย 8 ตัวอักษร">
+          </div>
+          <div class="field">
+            <label for="fPassword2">พิมพ์รหัสผ่านอีกครั้ง</label>
+            <input type="password" id="fPassword2" autocomplete="new-password">
+          </div>
+          <label class="check"><input type="checkbox" id="fShowPw"> แสดงรหัสผ่าน</label>
+          <p class="hint" id="pwHint"></p>
+        </div>
+        <p class="hint" id="protectHint"></p>
+      </section>
+
+      <section>
+        <h2>ส่งออก &amp; แชร์</h2>
+        <div class="field">
+          <label for="fFormat">รูปแบบไฟล์</label>
+          <select id="fFormat">
+            <option value="single">ไฟล์เดียว (.html) — ส่งต่อทางแชท/อีเมล</option>
+            <option value="zip">แพ็กเกจเว็บ (.zip) — อัปโหลดขึ้นโฮสต์แล้วแชร์ลิงก์</option>
+          </select>
+        </div>
+        <p class="hint" id="formatHint"></p>
+      </section>
+
+      <section>
+        <h2>คุณภาพไฟล์ที่ export</h2>
+        <div class="field">
+          <label for="fWidth">ความกว้างสูงสุดต่อหน้า (พิกเซล)</label>
+          <div class="row">
+            <input type="range" id="fWidth" min="600" max="2400" step="100" value="1400">
+            <span class="val" id="fWidthVal">1400</span>
+          </div>
+        </div>
+        <div class="field">
+          <label for="fQuality">คุณภาพ JPEG</label>
+          <div class="row">
+            <input type="range" id="fQuality" min="50" max="95" step="5" value="82">
+            <span class="val" id="fQualityVal">82%</span>
+          </div>
+        </div>
+        <p class="hint">ยิ่งสูง ไฟล์ยิ่งชัดและยิ่งใหญ่ ค่าแนะนำสำหรับอ่านบนจอคือ 1400 พิกเซล / 82%</p>
+        <p class="hint" id="sizeHint"></p>
+      </section>
+
+      <section>
+        <h2>วิธีใช้</h2>
+        <p class="hint">
+          1. เพิ่มรูปภาพ หรือ นำเข้า PDF (ลากไฟล์มาวางบนหน้าต่างนี้ก็ได้)<br>
+          2. ลากการ์ดเพื่อเรียงลำดับหน้า<br>
+          3. กดพรีวิวเพื่อทดลองพลิกอ่าน<br>
+          4. กด Export เลือกได้ว่าจะเอาไฟล์ <code>.html</code> ไฟล์เดียว หรือ <code>.zip</code> สำหรับอัปโหลดขึ้นเว็บเพื่อแชร์ลิงก์
+        </p>
+      </section>
+    </aside>
+
+    <main>
+      <div class="toolbar">
+        <span class="count" id="count">ยังไม่มีหน้า</span>
+        <div class="spacer"></div>
+        <button class="btn ghost" id="btnReverse">กลับลำดับ</button>
+        <button class="btn ghost" id="btnClear">ล้างทั้งหมด</button>
+      </div>
+      <div class="pages" id="pages"></div>
+    </main>
+  </div>
+</div>
+
+<div class="drop-hint" id="dropHint">วางไฟล์รูปภาพหรือ PDF ที่นี่</div>
+
+<div class="overlay" id="overlay">
+  <div class="obar">
+    <span class="title" id="previewTitle">พรีวิว</span>
+    <div class="spacer"></div>
+    <button class="btn ghost" id="btnClosePreview" style="color:#e9eaf0">ปิด (Esc)</button>
+  </div>
+  <div id="previewMount"></div>
+</div>
+
+<div class="progress" id="progress">
+  <div class="box">
+    <div id="progressText">กำลังทำงาน…</div>
+    <div class="bar"><i id="progressBar"></i></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<input type="file" id="fileImages" accept="image/*" multiple hidden>
+<input type="file" id="filePdf" accept="application/pdf" multiple hidden>
+
+<script src="vendor/pdf.min.js"></script>
+<script src="vendor/jszip.min.js"></script>
+<script src="js/flipbook.js"></script>
+<script src="js/protect.js"></script>
+<script src="js/export.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
