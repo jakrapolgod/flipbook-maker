@@ -20,8 +20,7 @@
 
   var settings = {
     title: '', author: '', mode: 'auto', bg: '#2a2b31',
-    duration: 700, sound: true, maxWidth: 1400, quality: 82, format: 'single',
-    protect: 'none'
+    duration: 700, sound: true, maxWidth: 1400, quality: 82, format: 'single'
   };
 
   var FORMAT_HINT = {
@@ -30,13 +29,6 @@
     zip: 'ได้ไฟล์ .zip ที่ข้างในเป็นเว็บสถิต (index.html + pages/) ' +
       'แตกไฟล์แล้วอัปโหลดขึ้นโฮสต์ cPanel, GitHub Pages, Netlify Drop หรือ Cloudflare Pages ' +
       'จะได้ลิงก์ให้คนอื่นเปิดอ่านออนไลน์ได้ทันที'
-  };
-
-  var PROTECT_HINT = {
-    none: 'ใครก็ตามที่มีลิงก์หรือไฟล์ เปิดอ่านได้ทันที เหมาะกับเอกสารเผยแพร่ทั่วไป',
-    password: 'ทุกหน้าจะถูกเข้ารหัสด้วย AES-256 ตั้งแต่ตอน export คนที่โหลดไฟล์ไปโดยไม่มีรหัสผ่าน ' +
-      'จะได้แค่ข้อมูลที่อ่านไม่ออก · ต้องเปิดผ่าน https เท่านั้น เบราว์เซอร์จึงถอดรหัสให้ได้ ' +
-      '(localhost และไฟล์ในเครื่องก็ได้) · ถ้าลืมรหัสผ่านจะกู้คืนไม่ได้ ต้อง export ใหม่'
   };
 
   /* ------------------------------------------------------------ utilities */
@@ -71,36 +63,6 @@
 
   function canvasToDataUrl(canvas, quality) {
     return canvas.toDataURL('image/jpeg', quality / 100);
-  }
-
-  /* -------------------------------------------------------------- password */
-
-  /* Returns the password to encrypt with, or null for an open book.
-     Throws with a message meant for the user when the fields are not usable. */
-  function readPassword() {
-    if (settings.protect !== 'password') return null;
-    if (!window.crypto || !window.crypto.subtle) {
-      throw new Error('เบราว์เซอร์นี้เข้ารหัสไม่ได้ ต้องเปิดแอปผ่าน localhost หรือ https');
-    }
-    var a = $('fPassword').value;
-    var b = $('fPassword2').value;
-    if (!a) throw new Error('ยังไม่ได้ตั้งรหัสผ่านให้เล่มนี้');
-    if (a.length < 8) throw new Error('รหัสผ่านต้องยาวอย่างน้อย 8 ตัวอักษร');
-    if (a !== b) throw new Error('รหัสผ่านสองช่องไม่ตรงกัน');
-    return a;
-  }
-
-  function gradePassword(pw) {
-    if (!pw) return { text: '', cls: '' };
-    var kinds = 0;
-    if (/[a-z]/.test(pw)) kinds++;
-    if (/[A-Z]/.test(pw)) kinds++;
-    if (/[0-9]/.test(pw)) kinds++;
-    if (/[^a-zA-Z0-9]/.test(pw)) kinds++;
-    if (pw.length < 8) return { text: 'สั้นเกินไป — ต้องอย่างน้อย 8 ตัวอักษร' };
-    if (pw.length >= 16 || (pw.length >= 12 && kinds >= 3)) return { text: 'ความแข็งแรง: ดีมาก' };
-    if (pw.length >= 12 || kinds >= 3) return { text: 'ความแข็งแรง: พอใช้ — ยาวขึ้นอีกจะปลอดภัยกว่า' };
-    return { text: 'ความแข็งแรง: อ่อน — ไฟล์ที่เข้ารหัสเปิดให้ทุกคนโหลดได้ รหัสสั้นจึงถูกเดาได้' };
   }
 
   /* --------------------------------------------------------- page sources */
@@ -391,18 +353,9 @@
   /* --------------------------------------------------------------- export */
 
   async function doExport() {
-    var password;
-    try {
-      password = readPassword();          // validate before doing any work
-    } catch (err) {
-      toast(err.message, 4500);
-      $('fPassword').focus();
-      return;
-    }
-
     var r = await renderAll('กำลังเรนเดอร์หน้าหนังสือ');
     var zipMode = settings.format === 'zip';
-    progress(true, password ? 'กำลังเข้ารหัสหน้าหนังสือ…' : 'กำลังประกอบไฟล์…', 0.05);
+    progress(true, 'กำลังประกอบไฟล์…', 0.05);
     try {
       var opts = {
         pages: r.pages,
@@ -411,22 +364,17 @@
         mode: settings.mode,
         duration: settings.duration,
         sound: settings.sound,
-        bg: settings.bg,
-        password: password
+        bg: settings.bg
       };
-      var label = password
-        ? (zipMode ? 'กำลังเข้ารหัสและบีบอัด…' : 'กำลังเข้ารหัส…')
-        : 'กำลังบีบอัดแพ็กเกจเว็บ…';
-      var onProgress = function (p) { progress(true, label, p); };
-
       var blob = zipMode
-        ? await FlipbookExport.buildZip(opts, onProgress)
-        : await FlipbookExport.build(opts, onProgress);
+        ? await FlipbookExport.buildZip(opts, function (p) {
+            progress(true, 'กำลังบีบอัดแพ็กเกจเว็บ…', p);
+          })
+        : await FlipbookExport.build(opts);
 
       FlipbookExport.download(blob, FlipbookExport.safeFilename(settings.title, zipMode ? '.zip' : '.html'));
       toast('Export สำเร็จ — ' + humanSize(blob.size) +
-        (password ? ' · เข้ารหัสแล้ว ต้องใช้รหัสผ่านเปิด' : '') +
-        (zipMode ? ' · แตกไฟล์แล้วอัปโหลดทั้งโฟลเดอร์ขึ้นโฮสต์ได้เลย' : ''), 5000);
+        (zipMode ? ' · แตกไฟล์แล้วอัปโหลดทั้งโฟลเดอร์ขึ้นโฮสต์ได้เลย' : ''), 4500);
     } catch (err) {
       console.error(err);
       toast('Export ไม่สำเร็จ: ' + err.message, 5000);
@@ -465,30 +413,12 @@
     live('fWidth', 'maxWidth', Number, function () { $('fWidthVal').textContent = $('fWidth').value; });
     live('fQuality', 'quality', Number, function () { $('fQualityVal').textContent = $('fQuality').value + '%'; });
     live('fFormat', 'format', null, updateExportLabel);
-    live('fProtect', 'protect', null, function () {
-      var locked = $('fProtect').value === 'password';
-      $('pwFields').hidden = !locked;
-      $('protectHint').textContent = PROTECT_HINT[locked ? 'password' : 'none'];
-      updateExportLabel();
-    });
-
-    function showStrength() {
-      $('pwHint').textContent = gradePassword($('fPassword').value).text;
-    }
-    $('fPassword').addEventListener('input', showStrength);
-    $('fPassword2').addEventListener('input', showStrength);
-    $('fShowPw').addEventListener('change', function () {
-      var t = this.checked ? 'text' : 'password';
-      $('fPassword').type = t;
-      $('fPassword2').type = t;
-    });
   }
 
   function updateExportLabel() {
     var zip = settings.format === 'zip';
-    var lock = settings.protect === 'password' ? '🔒 ' : '';
     $('formatHint').textContent = FORMAT_HINT[zip ? 'zip' : 'single'];
-    $('btnExport').textContent = lock + (zip ? 'Export แพ็กเกจเว็บ (.zip)' : 'Export ไฟล์ .html');
+    $('btnExport').textContent = zip ? 'Export แพ็กเกจเว็บ (.zip)' : 'Export ไฟล์ .html';
   }
 
   function bindDropZone() {

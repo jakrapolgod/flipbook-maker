@@ -58,30 +58,6 @@
       </section>
 
       <section>
-        <h2>การป้องกันเล่มนี้</h2>
-        <div class="field">
-          <label for="fProtect">โหมด</label>
-          <select id="fProtect">
-            <option value="none">ไม่เข้ารหัส — ใครมีลิงก์ก็เปิดอ่านได้</option>
-            <option value="password">เข้ารหัส — ต้องกรอกรหัสผ่านก่อนอ่าน</option>
-          </select>
-        </div>
-        <div id="pwFields" hidden>
-          <div class="field">
-            <label for="fPassword">รหัสผ่านของเล่มนี้</label>
-            <input type="password" id="fPassword" autocomplete="new-password" placeholder="อย่างน้อย 8 ตัวอักษร">
-          </div>
-          <div class="field">
-            <label for="fPassword2">พิมพ์รหัสผ่านอีกครั้ง</label>
-            <input type="password" id="fPassword2" autocomplete="new-password">
-          </div>
-          <label class="check"><input type="checkbox" id="fShowPw"> แสดงรหัสผ่าน</label>
-          <p class="hint" id="pwHint"></p>
-        </div>
-        <p class="hint" id="protectHint"></p>
-      </section>
-
-      <section>
         <h2>ส่งออก &amp; แชร์</h2>
         <div class="field">
           <label for="fFormat">รูปแบบไฟล์</label>
@@ -162,7 +138,6 @@
 <script src="vendor/pdf.min.js"></script>
 <script src="vendor/jszip.min.js"></script>
 <script src="js/flipbook.js"></script>
-<script src="js/protect.js"></script>
 <script src="js/export.js"></script>
 <script src="js/app.js"></script>
 </body>
